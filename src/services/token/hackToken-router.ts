@@ -6,30 +6,18 @@ import * as crypto from 'crypto';
 const hackTokenRouter: Router = Router();
 
 /**
- * @api {METHOD} SERVICE/ENDPOINT SERVICE/ENDPOINT
- * @apiGroup SERVICE
- * @apiDescription SERVICE DESCRIPTION
+ * @api {post} /token/encode/ POST /token/encode/
+ * @apiGroup token
+ * @apiDescription Encode your data, get a encrypted token that can be decrpted
  *
- * @apiParam {TYPE} PARAM1 DESC
- * @apiParam {TYPE} PARAM2 DESC
- * @apiParam {TYPE} PARAM3 DESC
- *
- * @apiSuccess (200: Success) {TYPE} NAME1 DESC
- * @apiSuccess (200: Success) {TYPE} NAME2 DESC
- * @apiSuccess (200: Success) {TYPE} NAME3 DESC
-
+ * @apiSuccess (200: Success) {String} T encrypted token
  * @apiSuccessExample Example Success Response:
  * 	HTTP/1.1 200 OK
- *	{
- *		"NAME1": VALUE1,
- * 		"NAME2": VALUE2,
- * 		"NAME3": VALUE3
- * 	}
+* {
+*    "token": "7eLFraeBhbdpk4pxJWGwfRSQn4fNtYo4jW5wwiJDCF0IKADjcsbacUP/ygdBioCvPDZERGinwP/kI9TNI8L8YXPlX2SGf4Q2F51scarZBTLiCZO3aQB+SMCPIZKfub1A",
+*    "context": "8528e91688c79cdb20c9004ca4537b04"
+* }
  *
- * @apiUse strongVerifyErrors
- * @apiError (CODE: DESC) {TYPE} ERROR1 DESC
- * @apiError (CODE: DESC) {TYPE} ERROR2 DESC
- * @apiError (CODE: DESC) {TYPE} ERROR3 DESC
  */
 
 // encoding
@@ -55,30 +43,20 @@ hackTokenRouter.post("/encode", (req: Request, res: Response) => {
 });
 
 /**
- * @api {METHOD} SERVICE/ENDPOINT SERVICE/ENDPOINT
- * @apiGroup SERVICE
- * @apiDescription SERVICE DESCRIPTION
+ * @api {post} /token/decode/ POST /token/decode/
+ * @apiGroup token
+ * @apiDescription Decode your data from encrypted token
  *
- * @apiParam {TYPE} PARAM1 DESC
- * @apiParam {TYPE} PARAM2 DESC
- * @apiParam {TYPE} PARAM3 DESC
- *
- * @apiSuccess (200: Success) {TYPE} NAME1 DESC
- * @apiSuccess (200: Success) {TYPE} NAME2 DESC
- * @apiSuccess (200: Success) {TYPE} NAME3 DESC
-
  * @apiSuccessExample Example Success Response:
  * 	HTTP/1.1 200 OK
- *	{
- *		"NAME1": VALUE1,
- * 		"NAME2": VALUE2,
- * 		"NAME3": VALUE3
- * 	}
+ * {
+ *    "name": "Jane Doe",
+ *    "age": "21"
+ * }
  *
- * @apiUse strongVerifyErrors
- * @apiError (CODE: DESC) {TYPE} ERROR1 DESC
- * @apiError (CODE: DESC) {TYPE} ERROR2 DESC
- * @apiError (CODE: DESC) {TYPE} ERROR3 DESC
+ * @apiError (400: Bad Request) {String} Missing parameters
+ * @apiError (400: Bad Request) {String} Invalid  parameters
+ * @apiError (401: Unauthorized) {String} Unauthorized token
  */
 
 // decoding
@@ -86,7 +64,7 @@ hackTokenRouter.post("/decode", (req: Request, res: Response) => {
     try {
         const { token, context } = req.body;
         if (!token || !context) {
-            return res.status(StatusCode.ClientErrorBadRequest).json({ error: "Error1" });
+            return res.status(StatusCode.ClientErrorBadRequest).json({ error: "Missing Parameters" });
         }
 
         const initial_v = Buffer.from(context, 'hex');
@@ -99,7 +77,7 @@ hackTokenRouter.post("/decode", (req: Request, res: Response) => {
 
         const [encoded, signature] = decryptedString.split('.');
         if (!encoded || !signature) {
-            return res.status(StatusCode.ClientErrorBadRequest).json({ error: "Error2" });
+            return res.status(StatusCode.ClientErrorBadRequest).json({ error: "Invalid Parameters" });
         }
 
         const hmac = crypto.createHmac('sha256', Config.SECRET_KEY);
@@ -107,13 +85,13 @@ hackTokenRouter.post("/decode", (req: Request, res: Response) => {
         const received_signature = hmac.digest('base64');
 
         if (signature !== received_signature) {
-            return res.status(StatusCode.ClientErrorUnauthorized).json({ error: "Error3" });
+            return res.status(StatusCode.ClientErrorUnauthorized).json({ error: "Unauthorized Token" });
         }
 
         const decoded = Buffer.from(encoded, 'base64').toString('utf8');
         return res.status(StatusCode.SuccessOK).json(JSON.parse(decoded));
     } catch (error) {
-        return res.status(StatusCode.ClientErrorBadRequest).json({ error: "Error4" });
+        return res.status(StatusCode.ClientErrorBadRequest).json({ error: "Invalid Parameters" });
     }
 });
 
