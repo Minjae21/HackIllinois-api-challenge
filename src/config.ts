@@ -49,6 +49,10 @@ function requireEnv(name: string): string {
 }
 
 const Config = {
+    /* HackWebTokens Keys here */
+    SECRET_KEY: "hackwebtokenskey",
+    SECRET_EN_KEY: "hackwebtokensEncryptionkey",
+
     /* Jest */
     TEST: false, // False by default, will be mocked over
 
