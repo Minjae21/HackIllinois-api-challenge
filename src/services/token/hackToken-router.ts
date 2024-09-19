@@ -37,7 +37,7 @@ hackTokenRouter.post("/encode", (req: Request, res: Response) => {
     encrypted = Buffer.concat([encrypted, cipher.final()]);
 
     res.status(StatusCode.SuccessOK).json({
-        token: encrypted.toString("base64"),
+        token: encrypted,
         context: initial_v.toString("hex"),
     });
 });

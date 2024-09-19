@@ -64,7 +64,7 @@ app.get("/", (_: Request, res: Response) => {
 
 // Throw an error if call is made to the wrong API endpoint
 app.use("/", (_: Request, res: Response) => {
-        res.status(StatusCode.ClientErrorNotFound).end("API endpoint does not exist!");
+    res.status(StatusCode.ClientErrorNotFound).end("API endpoint does not exist!");
 });
 
 app.use(ErrorHandler);
