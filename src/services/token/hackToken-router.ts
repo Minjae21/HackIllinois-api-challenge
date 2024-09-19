@@ -4,6 +4,7 @@ import Config from "../../config.js";
 import * as crypto from "crypto";
 
 const hackTokenRouter: Router = Router();
+const iv_length = 16;
 
 /**
  * @api {post} /token/encode/ POST /token/encode/
@@ -30,14 +31,13 @@ hackTokenRouter.post("/encode", (req: Request, res: Response) => {
     const signature = hmac.digest("base64");
     const token = `${b64Data}.${signature}`;
 
-    // eslint-disable-next-line no-magic-numbers
-    const initial_v = crypto.randomBytes(16);
+    const initial_v = crypto.randomBytes(iv_length);
     const cipher = crypto.createCipheriv("aes-256-cbc", Buffer.from(Config.SECRET_EN_KEY), initial_v);
     let encrypted = cipher.update(token);
     encrypted = Buffer.concat([encrypted, cipher.final()]);
 
     res.status(StatusCode.SuccessOK).json({
-        token: encrypted,
+        token: encrypted.toString("base64"),
         context: initial_v.toString("hex"),
     });
 });
